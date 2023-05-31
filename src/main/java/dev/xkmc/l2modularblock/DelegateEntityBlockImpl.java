@@ -1,8 +1,8 @@
 package dev.xkmc.l2modularblock;
 
 import dev.xkmc.l2modularblock.one.BlockEntityBlockMethod;
-import dev.xkmc.l2modularblock.type.BlockMethod;
 import dev.xkmc.l2modularblock.tile_api.TickableBlockEntity;
+import dev.xkmc.l2modularblock.type.BlockMethod;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.MenuProvider;
@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
@@ -20,7 +21,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DelegateEntityBlockImpl extends DelegateBlockImpl implements EntityBlock {
 
-	protected DelegateEntityBlockImpl(DelegateBlockProperties p, BlockMethod... impl) {
+	protected DelegateEntityBlockImpl(BlockBehaviour.Properties p, BlockMethod... impl) {
 		super(p, impl);
 	}
 

@@ -6,6 +6,7 @@ import net.minecraft.world.level.material.Material;
 
 import java.util.function.Consumer;
 
+@Deprecated
 public class DelegateBlockProperties {
 
 	public static final DelegateBlockProperties ORE_0 = new DelegateBlockProperties(Material.STONE, 3, 3).setTool(0);

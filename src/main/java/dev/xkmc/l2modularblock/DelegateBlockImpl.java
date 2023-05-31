@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.PushReaction;
@@ -51,14 +52,10 @@ public class DelegateBlockImpl extends DelegateBlock {
 
 	BlockImplementor impl;
 
-	protected DelegateBlockImpl(DelegateBlockProperties p, BlockMethod... impl) {
-		super(handler(construct(p).addImpls(impl)));
+	protected DelegateBlockImpl(BlockBehaviour.Properties p, BlockMethod... impl) {
+		super(handler(new BlockImplementor(p).addImpls(impl)));
 		registerDefaultState(this.impl.reduce(DefaultStateBlockMethod.class, defaultBlockState(),
 				(state, def) -> def.getDefaultState(state)));
-	}
-
-	public static BlockImplementor construct(DelegateBlockProperties bb) {
-		return new BlockImplementor(bb.getProps());
 	}
 
 	private static Properties handler(BlockImplementor bi) {
