@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -203,19 +204,13 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final PushReaction getPistonPushReaction(BlockState state) {
-		return impl.one(PushReactionBlockMethod.class).map(e -> e.getPistonPushReaction(state))
-				.orElse(super.getPistonPushReaction(state));
-	}
-
-	@Override
 	public final ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
 		return impl.one(GetBlockItemBlockMethod.class).map(e -> e.getCloneItemStack(world, pos, state))
 				.orElse(super.getCloneItemStack(world, pos, state));
 	}
 
 	@Override
-	public final List<ItemStack> getDrops(BlockState state, LootContext.Builder builder) {
+	public final List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
 		return impl.one(SpecialDropBlockMethod.class).map(e -> e.getDrops(state, builder))
 				.orElse(super.getDrops(state, builder));
 	}

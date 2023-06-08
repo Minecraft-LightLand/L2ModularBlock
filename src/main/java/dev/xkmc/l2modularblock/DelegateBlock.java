@@ -19,11 +19,6 @@ public class DelegateBlock extends Block {
 		return new DelegateBlockImpl(p, impl);
 	}
 
-	@Deprecated
-	public static DelegateBlock newBaseBlock(DelegateBlockProperties p, BlockMethod... impl) {
-		return newBaseBlock(p.getProps(), impl);
-	}
-
 	protected DelegateBlock(Properties props) {
 		super(props);
 	}

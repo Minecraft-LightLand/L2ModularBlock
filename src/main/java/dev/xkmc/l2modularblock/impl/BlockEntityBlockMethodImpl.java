@@ -1,6 +1,5 @@
 package dev.xkmc.l2modularblock.impl;
 
-import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import dev.xkmc.l2modularblock.mult.OnClickBlockMethod;
 import dev.xkmc.l2modularblock.mult.SetPlacedByBlockMethod;
 import dev.xkmc.l2modularblock.one.AnalogOutputBlockMethod;
@@ -26,6 +25,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.function.Supplier;
 
 /**
  * To make it tickable, implements TickableBlockEntity <br>
@@ -39,17 +39,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockEntityBlockMethod<T>, OnClickBlockMethod,
 		SetPlacedByBlockMethod, AnalogOutputBlockMethod {
 
-	private final BlockEntityEntry<T> type;
+	private final Supplier<BlockEntityType<T>> type;
 	private final Class<T> cls;
 
-	public BlockEntityBlockMethodImpl(BlockEntityEntry<T> type, Class<T> cls) {
+	public BlockEntityBlockMethodImpl(Supplier<BlockEntityType<T>> type, Class<T> cls) {
 		this.type = type;
 		this.cls = cls;
 	}
 
 	@Override
-	public BlockEntity createTileEntity(BlockPos pos, BlockState state) {
-		return type.create(pos, state);
+	public T createTileEntity(BlockPos pos, BlockState state) {
+		T ans = type.get().create(pos, state);
+		assert ans != null;
+		return ans;
 	}
 
 	@Override
