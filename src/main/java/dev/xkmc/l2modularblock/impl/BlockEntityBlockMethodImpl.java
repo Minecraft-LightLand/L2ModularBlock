@@ -20,8 +20,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -93,11 +93,10 @@ public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockE
 			if (e instanceof Container) {
 				return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(e);
 			}
-			var lazyCap = e.getCapability(ForgeCapabilities.ITEM_HANDLER);
-			if (lazyCap.resolve().isPresent()) {
-				var cap = lazyCap.resolve().get();
-				return ItemHandlerHelper.calcRedstoneFromInventory(cap);
-			}
+		}
+		var cap = worldIn.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+		if (cap != null) {
+			return ItemHandlerHelper.calcRedstoneFromInventory(cap);
 		}
 		return 0;
 	}

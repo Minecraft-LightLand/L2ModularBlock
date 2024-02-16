@@ -23,6 +23,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
@@ -37,8 +38,8 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -72,8 +73,8 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos) {
-		return impl.one(AnalogOutputBlockMethod.class).map(e -> e.getAnalogOutputSignal(blockState, worldIn, pos)).orElse(0);
+	public final int getAnalogOutputSignal(BlockState blockState, Level levelIn, BlockPos pos) {
+		return impl.one(AnalogOutputBlockMethod.class).map(e -> e.getAnalogOutputSignal(blockState, levelIn, pos)).orElse(0);
 	}
 
 	@Override
@@ -115,20 +116,20 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-		impl.forEach(OnReplacedBlockMethod.class, e -> e.onReplaced(state, worldIn, pos, newState, isMoving));
+	public final void onRemove(BlockState state, Level levelIn, BlockPos pos, BlockState newState, boolean isMoving) {
+		impl.forEach(OnReplacedBlockMethod.class, e -> e.onReplaced(state, levelIn, pos, newState, isMoving));
 		if (impl.one(BlockEntityBlockMethod.class).isPresent() && state.getBlock() != newState.getBlock()) {
-			BlockEntity entity = worldIn.getBlockEntity(pos);
+			BlockEntity entity = levelIn.getBlockEntity(pos);
 			if (entity != null) {
 				if (entity instanceof Container) {
-					Containers.dropContents(worldIn, pos, (Container) entity);
-					worldIn.updateNeighbourForOutputSignal(pos, this);
+					Containers.dropContents(levelIn, pos, (Container) entity);
+					levelIn.updateNeighbourForOutputSignal(pos, this);
 				} else if (entity instanceof BlockContainer blockContainer) {
 					for (Container c : blockContainer.getContainers())
-						Containers.dropContents(worldIn, pos, c);
-					worldIn.updateNeighbourForOutputSignal(pos, this);
+						Containers.dropContents(levelIn, pos, c);
+					levelIn.updateNeighbourForOutputSignal(pos, this);
 				}
-				worldIn.removeBlockEntity(pos);
+				levelIn.removeBlockEntity(pos);
 			}
 		}
 	}
@@ -146,25 +147,25 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final void neighborChanged(BlockState state, Level world, BlockPos pos, Block nei_block, BlockPos nei_pos, boolean moving) {
-		impl.forEach(NeighborUpdateBlockMethod.class, e -> e.neighborChanged(this, state, world, pos, nei_block, nei_pos, moving));
-		super.neighborChanged(state, world, pos, nei_block, nei_pos, moving);
+	public final void neighborChanged(BlockState state, Level level, BlockPos pos, Block nei_block, BlockPos nei_pos, boolean moving) {
+		impl.forEach(NeighborUpdateBlockMethod.class, e -> e.neighborChanged(this, state, level, pos, nei_block, nei_pos, moving));
+		super.neighborChanged(state, level, pos, nei_block, nei_pos, moving);
 	}
 
 	@Override
-	public final void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-		impl.forEach(RandomTickBlockMethod.class, e -> e.randomTick(state, world, pos, random));
+	public final void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		impl.forEach(RandomTickBlockMethod.class, e -> e.randomTick(state, level, pos, random));
 	}
 
 	@Override
-	public final void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-		impl.forEach(ScheduleTickBlockMethod.class, e -> e.tick(state, world, pos, random));
+	public final void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		impl.forEach(ScheduleTickBlockMethod.class, e -> e.tick(state, level, pos, random));
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public final void animateTick(BlockState state, Level world, BlockPos pos, RandomSource r) {
-		impl.forEach(AnimateTickBlockMethod.class, e -> e.animateTick(state, world, pos, r));
+	public final void animateTick(BlockState state, Level level, BlockPos pos, RandomSource r) {
+		impl.forEach(AnimateTickBlockMethod.class, e -> e.animateTick(state, level, pos, r));
 	}
 
 	@Override
@@ -204,9 +205,9 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
-		return impl.one(GetBlockItemBlockMethod.class).map(e -> e.getCloneItemStack(world, pos, state))
-				.orElse(super.getCloneItemStack(world, pos, state));
+	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+		return impl.one(GetBlockItemBlockMethod.class).map(e -> e.getCloneItemStack(level, pos, state))
+				.orElse(super.getCloneItemStack(level, pos, state));
 	}
 
 	@Override
