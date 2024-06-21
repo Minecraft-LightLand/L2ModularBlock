@@ -1,14 +1,12 @@
 package dev.xkmc.l2modularblock.impl;
 
-import dev.xkmc.l2modularblock.mult.OnClickBlockMethod;
 import dev.xkmc.l2modularblock.mult.SetPlacedByBlockMethod;
+import dev.xkmc.l2modularblock.mult.UseWithoutItemBlockMethod;
 import dev.xkmc.l2modularblock.one.AnalogOutputBlockMethod;
 import dev.xkmc.l2modularblock.one.BlockEntityBlockMethod;
-import dev.xkmc.l2modularblock.tile_api.NameSetable;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -36,7 +34,7 @@ import java.util.function.Supplier;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockEntityBlockMethod<T>, OnClickBlockMethod,
+public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockEntityBlockMethod<T>, UseWithoutItemBlockMethod,
 		SetPlacedByBlockMethod, AnalogOutputBlockMethod {
 
 	private final Supplier<BlockEntityType<T>> type;
@@ -65,7 +63,7 @@ public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockE
 	}
 
 	@Override
-	public InteractionResult onClick(BlockState state, Level level, BlockPos pos, Player pl, InteractionHand hand, BlockHitResult result) {
+	public InteractionResult clickNoItem(BlockState state, Level level, BlockPos pos, Player pl, BlockHitResult result) {
 		BlockEntity te = level.getBlockEntity(pos);
 		if (level.isClientSide())
 			return te instanceof MenuProvider ? InteractionResult.SUCCESS : InteractionResult.PASS;
@@ -78,12 +76,7 @@ public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockE
 
 	@Override
 	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
-		if (stack.hasCustomHoverName()) {
-			BlockEntity blockentity = level.getBlockEntity(pos);
-			if (blockentity instanceof NameSetable be) {
-				be.setCustomName(stack.getHoverName());
-			}
-		}
+		//TODO set placed by set name
 	}
 
 	@Override

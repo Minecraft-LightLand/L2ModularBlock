@@ -2,6 +2,7 @@ package dev.xkmc.l2modularblock.mult;
 
 import dev.xkmc.l2modularblock.type.MultipleBlockMethod;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
@@ -11,6 +12,6 @@ import java.util.List;
 
 public interface ToolTipBlockMethod extends MultipleBlockMethod {
 
-	void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> list, TooltipFlag flag);
+	void appendHoverText(ItemStack stack, Item.TooltipContext level, List<Component> list, TooltipFlag flag);
 
 }

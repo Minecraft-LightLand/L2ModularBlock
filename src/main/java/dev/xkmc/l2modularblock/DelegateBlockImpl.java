@@ -10,13 +10,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -32,8 +30,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.material.PushReaction;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -108,11 +104,19 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final InteractionResult use(BlockState bs, Level w, BlockPos pos, Player pl, InteractionHand h, BlockHitResult r) {
-		return impl.execute(OnClickBlockMethod.class)
-				.map(e -> e.onClick(bs, w, pos, pl, h, r))
+	protected InteractionResult useWithoutItem(BlockState bs, Level w, BlockPos pos, Player pl, BlockHitResult hit) {//TODO with item version
+		return impl.execute(UseWithoutItemBlockMethod.class)
+				.map(e -> e.clickNoItem(bs, w, pos, pl, hit))
 				.filter(e -> e != InteractionResult.PASS)
 				.findFirst().orElse(InteractionResult.PASS);
+	}
+
+	@Override
+	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+		return impl.execute(UseItemOnBlockMethod.class)
+				.map(e -> e.clickNoItem(stack, state, level, pos, player, hand, hit))
+				.filter(e -> e != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION)
+				.findFirst().orElse(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
 	}
 
 	@Override
@@ -238,8 +242,8 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> list, TooltipFlag flag) {
-		impl.forEach(ToolTipBlockMethod.class, e -> e.appendHoverText(stack, level, list, flag));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> list, TooltipFlag flag) {
+		impl.forEach(ToolTipBlockMethod.class, e -> e.appendHoverText(stack, ctx, list, flag));
 	}
 
 	@Override
