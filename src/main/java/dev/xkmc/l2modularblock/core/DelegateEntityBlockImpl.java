@@ -1,4 +1,4 @@
-package dev.xkmc.l2modularblock;
+package dev.xkmc.l2modularblock.core;
 
 import dev.xkmc.l2modularblock.one.BlockEntityBlockMethod;
 import dev.xkmc.l2modularblock.tile_api.TickableBlockEntity;

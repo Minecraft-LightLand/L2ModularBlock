@@ -49,6 +49,10 @@ dependencies {
 
 }
 
+java {
+    withSourcesJar()
+}
+
 tasks.withType(ProcessResources).configureEach {
     var replaceProperties = [
             minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,

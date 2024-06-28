@@ -1,6 +1,6 @@
 package dev.xkmc.l2modularblock.impl;
 
-import dev.xkmc.l2modularblock.BlockProxy;
+import dev.xkmc.l2modularblock.core.BlockTemplates;
 import dev.xkmc.l2modularblock.mult.CreateBlockStateBlockMethod;
 import dev.xkmc.l2modularblock.mult.PlacementBlockMethod;
 import dev.xkmc.l2modularblock.one.MirrorRotateBlockMethod;
@@ -18,21 +18,21 @@ public class HorizontalBlockMethodImpl implements MirrorRotateBlockMethod, Creat
 
 	@Override
 	public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(BlockProxy.HORIZONTAL_FACING);
+		builder.add(BlockTemplates.HORIZONTAL_FACING);
 	}
 
 	@Override
 	public BlockState getStateForPlacement(BlockState def, BlockPlaceContext context) {
-		return def.setValue(BlockProxy.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+		return def.setValue(BlockTemplates.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
 	}
 
 	@Override
 	public BlockState mirror(BlockState state, Mirror mirrorIn) {
-		return state.rotate(mirrorIn.getRotation(state.getValue(BlockProxy.HORIZONTAL_FACING)));
+		return state.rotate(mirrorIn.getRotation(state.getValue(BlockTemplates.HORIZONTAL_FACING)));
 	}
 
 	@Override
 	public BlockState rotate(BlockState state, Rotation rot) {
-		return state.setValue(BlockProxy.HORIZONTAL_FACING, rot.rotate(state.getValue(BlockProxy.HORIZONTAL_FACING)));
+		return state.setValue(BlockTemplates.HORIZONTAL_FACING, rot.rotate(state.getValue(BlockTemplates.HORIZONTAL_FACING)));
 	}
 }

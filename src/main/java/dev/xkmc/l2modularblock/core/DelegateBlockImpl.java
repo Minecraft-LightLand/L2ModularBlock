@@ -1,10 +1,9 @@
-package dev.xkmc.l2modularblock;
+package dev.xkmc.l2modularblock.core;
 
 import dev.xkmc.l2modularblock.mult.*;
 import dev.xkmc.l2modularblock.one.*;
 import dev.xkmc.l2modularblock.tile_api.BlockContainer;
 import dev.xkmc.l2modularblock.type.BlockMethod;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -38,11 +37,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
-@MethodsReturnNonnullByDefault
-@ParametersAreNonnullByDefault
 @SuppressWarnings({"deprecation"})
 public class DelegateBlockImpl extends DelegateBlock {
 
@@ -104,9 +100,9 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	protected InteractionResult useWithoutItem(BlockState bs, Level w, BlockPos pos, Player pl, BlockHitResult hit) {//TODO with item version
+	protected InteractionResult useWithoutItem(BlockState bs, Level w, BlockPos pos, Player pl, BlockHitResult hit) {
 		return impl.execute(UseWithoutItemBlockMethod.class)
-				.map(e -> e.clickNoItem(bs, w, pos, pl, hit))
+				.map(e -> e.useWithoutItem(bs, w, pos, pl, hit))
 				.filter(e -> e != InteractionResult.PASS)
 				.findFirst().orElse(InteractionResult.PASS);
 	}
@@ -114,7 +110,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		return impl.execute(UseItemOnBlockMethod.class)
-				.map(e -> e.clickNoItem(stack, state, level, pos, player, hand, hit))
+				.map(e -> e.useItemOn(stack, state, level, pos, player, hand, hit))
 				.filter(e -> e != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION)
 				.findFirst().orElse(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
 	}
@@ -249,6 +245,11 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState old, boolean moving) {
 		impl.forEach(OnPlaceBlockMethod.class, e -> e.onPlace(state, level, pos, old, moving));
+	}
+
+	@Override
+	public void stepOn(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity) {
+		impl.forEach(StepOnBlockMethod.class, e -> e.stepOn(pLevel, pPos, pState, pEntity));
 	}
 
 	public final BlockImplementor getImpl() {

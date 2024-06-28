@@ -12,6 +12,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public interface UseItemOnBlockMethod extends MultipleBlockMethod {
 
-	ItemInteractionResult clickNoItem(ItemStack stack, BlockState state, Level level, BlockPos pos, Player pl, InteractionHand hand, BlockHitResult result);
+	ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player pl, InteractionHand hand, BlockHitResult result);
 
 }

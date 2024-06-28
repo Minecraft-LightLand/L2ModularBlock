@@ -1,4 +1,4 @@
-package dev.xkmc.l2modularblock;
+package dev.xkmc.l2modularblock.core;
 
 import dev.xkmc.l2modularblock.impl.AllDireBlockMethodImpl;
 import dev.xkmc.l2modularblock.impl.HorizontalBlockMethodImpl;
@@ -8,7 +8,7 @@ import dev.xkmc.l2modularblock.type.BlockMethod;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
-public class BlockProxy {
+public class BlockTemplates {
 
 	public static final BlockMethod POWER = new PowerBlockMethodImpl();
 	public static final BlockMethod ALL_DIRECTION = new AllDireBlockMethodImpl();

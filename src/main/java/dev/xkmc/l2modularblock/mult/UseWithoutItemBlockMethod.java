@@ -10,6 +10,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public interface UseWithoutItemBlockMethod extends MultipleBlockMethod {
 
-	InteractionResult clickNoItem(BlockState state, Level level, BlockPos pos, Player pl, BlockHitResult result);
+	InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player pl, BlockHitResult result);
 
 }

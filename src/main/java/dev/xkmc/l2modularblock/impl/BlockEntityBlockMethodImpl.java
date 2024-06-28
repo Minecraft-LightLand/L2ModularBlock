@@ -63,7 +63,7 @@ public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockE
 	}
 
 	@Override
-	public InteractionResult clickNoItem(BlockState state, Level level, BlockPos pos, Player pl, BlockHitResult result) {
+	public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player pl, BlockHitResult result) {
 		BlockEntity te = level.getBlockEntity(pos);
 		if (level.isClientSide())
 			return te instanceof MenuProvider ? InteractionResult.SUCCESS : InteractionResult.PASS;

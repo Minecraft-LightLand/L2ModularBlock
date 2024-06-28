@@ -1,7 +1,7 @@
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 
-package dev.xkmc.l2modularblock;
+package dev.xkmc.l2modularblock.core;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

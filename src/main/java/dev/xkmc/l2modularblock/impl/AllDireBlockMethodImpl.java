@@ -1,6 +1,6 @@
 package dev.xkmc.l2modularblock.impl;
 
-import dev.xkmc.l2modularblock.BlockProxy;
+import dev.xkmc.l2modularblock.core.BlockTemplates;
 import dev.xkmc.l2modularblock.mult.CreateBlockStateBlockMethod;
 import dev.xkmc.l2modularblock.mult.PlacementBlockMethod;
 import dev.xkmc.l2modularblock.one.MirrorRotateBlockMethod;
@@ -18,20 +18,20 @@ public class AllDireBlockMethodImpl implements PlacementBlockMethod, CreateBlock
 
 	@Override
 	public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(BlockProxy.FACING);
+		builder.add(BlockTemplates.FACING);
 	}
 
 	@Override
 	public BlockState getStateForPlacement(BlockState def, BlockPlaceContext context) {
-		return def.setValue(BlockProxy.FACING, context.getClickedFace().getOpposite());
+		return def.setValue(BlockTemplates.FACING, context.getClickedFace().getOpposite());
 	}
 
 
 	public BlockState rotate(BlockState state, Rotation rot) {
-		return state.setValue(BlockProxy.FACING, rot.rotate(state.getValue(BlockProxy.FACING)));
+		return state.setValue(BlockTemplates.FACING, rot.rotate(state.getValue(BlockTemplates.FACING)));
 	}
 
 	public BlockState mirror(BlockState state, Mirror mirror) {
-		return state.rotate(mirror.getRotation(state.getValue(BlockProxy.FACING)));
+		return state.rotate(mirror.getRotation(state.getValue(BlockTemplates.FACING)));
 	}
 }
