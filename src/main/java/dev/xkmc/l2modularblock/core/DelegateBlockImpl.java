@@ -238,18 +238,23 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> list, TooltipFlag flag) {
+	public final void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> list, TooltipFlag flag) {
 		impl.forEach(ToolTipBlockMethod.class, e -> e.appendHoverText(stack, ctx, list, flag));
 	}
 
 	@Override
-	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState old, boolean moving) {
+	public final void onPlace(BlockState state, Level level, BlockPos pos, BlockState old, boolean moving) {
 		impl.forEach(OnPlaceBlockMethod.class, e -> e.onPlace(state, level, pos, old, moving));
 	}
 
 	@Override
-	public void stepOn(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity) {
+	public final void stepOn(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity) {
 		impl.forEach(StepOnBlockMethod.class, e -> e.stepOn(pLevel, pPos, pState, pEntity));
+	}
+
+	@Override
+	protected final boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+		return impl.testAnd(SurviveBlockMethod.class, e->e.canSurvive(state,level,pos));
 	}
 
 	public final BlockImplementor getImpl() {
