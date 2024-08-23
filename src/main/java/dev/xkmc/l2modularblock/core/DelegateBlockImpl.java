@@ -32,6 +32,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -175,6 +176,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 
 	@Override
 	public final VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+		if (!hasCollision) return Shapes.empty();
 		return impl.one(ShapeBlockMethod.class).map(e -> e.getCollisionShape(state, level, pos, ctx))
 				.orElseGet(() -> super.getCollisionShape(state, level, pos, ctx));
 	}
@@ -254,7 +256,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 
 	@Override
 	protected final boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-		return impl.testAnd(SurviveBlockMethod.class, e->e.canSurvive(state,level,pos));
+		return impl.testAnd(SurviveBlockMethod.class, e -> e.canSurvive(state, level, pos));
 	}
 
 	public final BlockImplementor getImpl() {
