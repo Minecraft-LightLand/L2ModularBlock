@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class BlockImplementor {
@@ -87,6 +88,27 @@ public class BlockImplementor {
 		return init;
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T extends MultipleBlockMethod> boolean testAnd(Class<T> cls, Predicate<T> cons) {
+		for (MultipleBlockMethod method : list) {
+			if (cls.isInstance(method)) {
+				if (!cons.test((T) method))
+					return false;
+			}
+		}
+		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends MultipleBlockMethod> boolean testOr(Class<T> cls, Predicate<T> cons) {
+		for (MultipleBlockMethod method : list) {
+			if (cls.isInstance(method)) {
+				if (cons.test((T) method))
+					return true;
+			}
+		}
+		return false;
+	}
 
 	@SuppressWarnings("unchecked")
 	public <T extends SingletonBlockMethod> Optional<T> one(Class<T> cls) {
