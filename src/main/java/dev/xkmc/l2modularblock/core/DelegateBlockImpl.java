@@ -17,6 +17,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -36,8 +37,9 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.ItemAbility;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 @SuppressWarnings({"deprecation"})
@@ -85,7 +87,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	public final BlockState getStateForPlacement(BlockPlaceContext context) {
 		return impl.reduce(PlacementBlockMethod.class, defaultBlockState(),
-				(state, impl) -> impl.getStateForPlacement(state, context));
+				(state, impl) -> state == null ? null : impl.getStateForPlacement(state, context));
 	}
 
 	@Override
@@ -257,6 +259,17 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	protected final boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
 		return impl.testAnd(SurviveBlockMethod.class, e -> e.canSurvive(state, level, pos));
+	}
+
+	@Override
+	public @Nullable BlockState getToolModifiedState(BlockState state, UseOnContext context, ItemAbility ability, boolean simulate) {
+		ItemStack stack = context.getItemInHand();
+		if (!stack.canPerformAction(ability)) {
+			return null;
+		}
+		return impl.<ToolModifyBlockMethod, @Nullable BlockState>reduce(ToolModifyBlockMethod.class,
+				super.getToolModifiedState(state, context, ability, simulate),
+				(current, impl) -> impl.getToolModifiedState(this, current, state, context, ability, simulate));
 	}
 
 	public final BlockImplementor getImpl() {
