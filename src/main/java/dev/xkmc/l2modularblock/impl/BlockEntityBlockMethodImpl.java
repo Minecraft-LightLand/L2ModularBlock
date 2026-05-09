@@ -1,28 +1,23 @@
 package dev.xkmc.l2modularblock.impl;
 
-import dev.xkmc.l2modularblock.mult.SetPlacedByBlockMethod;
 import dev.xkmc.l2modularblock.mult.UseWithoutItemBlockMethod;
 import dev.xkmc.l2modularblock.one.AnalogOutputBlockMethod;
 import dev.xkmc.l2modularblock.one.BlockEntityBlockMethod;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Supplier;
 
 /**
@@ -32,10 +27,7 @@ import java.util.function.Supplier;
  * To make it drop content when break, implements Container or BlockContainer <br>
  * To make it output redstone signal, implements Container <br>
  */
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockEntityBlockMethod<T>, UseWithoutItemBlockMethod,
-		SetPlacedByBlockMethod, AnalogOutputBlockMethod {
+public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockEntityBlockMethod<T>, UseWithoutItemBlockMethod, AnalogOutputBlockMethod {
 
 	private final Supplier<BlockEntityType<T>> type;
 	private final Class<T> cls;
@@ -75,21 +67,17 @@ public class BlockEntityBlockMethodImpl<T extends BlockEntity> implements BlockE
 	}
 
 	@Override
-	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
-		//TODO set placed by set name
-	}
-
-	@Override
-	public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos, Direction direction) {
 		BlockEntity e = worldIn.getBlockEntity(pos);
 		if (e != null) {
 			if (e instanceof Container) {
 				return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(e);
 			}
 		}
-		var cap = worldIn.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+		var cap = worldIn.getCapability(Capabilities.Item.BLOCK, pos, null);
+		if (cap == null) cap = worldIn.getCapability(Capabilities.Item.BLOCK, pos, direction);
 		if (cap != null) {
-			return ItemHandlerHelper.calcRedstoneFromInventory(cap);
+			return ResourceHandlerUtil.getRedstoneSignalFromResourceHandler(cap);
 		}
 		return 0;
 	}

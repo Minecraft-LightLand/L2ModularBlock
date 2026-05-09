@@ -8,6 +8,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public interface FallOnBlockMethod extends MultipleBlockMethod {
 
-	boolean fallOn(Level level, BlockState state, BlockPos pos, Entity entity, float height);
+	boolean fallOn(Level level, BlockState state, BlockPos pos, Entity entity, double height);
 
 }

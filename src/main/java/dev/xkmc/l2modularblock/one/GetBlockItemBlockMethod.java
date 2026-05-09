@@ -8,6 +8,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public interface GetBlockItemBlockMethod extends SingletonBlockMethod {
 
-	ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state);
+	ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state, boolean includeData);
 
 }

@@ -2,34 +2,32 @@ package dev.xkmc.l2modularblock.core;
 
 import dev.xkmc.l2modularblock.mult.*;
 import dev.xkmc.l2modularblock.one.*;
-import dev.xkmc.l2modularblock.tile_api.BlockContainer;
 import dev.xkmc.l2modularblock.type.BlockMethod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.*;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -68,8 +66,8 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final int getAnalogOutputSignal(BlockState blockState, Level levelIn, BlockPos pos) {
-		return impl.one(AnalogOutputBlockMethod.class).map(e -> e.getAnalogOutputSignal(blockState, levelIn, pos)).orElse(0);
+	public final int getAnalogOutputSignal(BlockState blockState, Level levelIn, BlockPos pos, Direction direction) {
+		return impl.one(AnalogOutputBlockMethod.class).map(e -> e.getAnalogOutputSignal(blockState, levelIn, pos, direction)).orElse(0);
 	}
 
 	@Override
@@ -111,30 +109,11 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		return impl.execute(UseItemOnBlockMethod.class)
 				.map(e -> e.useItemOn(stack, state, level, pos, player, hand, hit))
-				.filter(e -> e != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION)
-				.findFirst().orElse(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
-	}
-
-	@Override
-	public final void onRemove(BlockState state, Level levelIn, BlockPos pos, BlockState newState, boolean isMoving) {
-		impl.forEach(OnReplacedBlockMethod.class, e -> e.onReplaced(state, levelIn, pos, newState, isMoving));
-		if (impl.one(BlockEntityBlockMethod.class).isPresent() && state.getBlock() != newState.getBlock()) {
-			BlockEntity entity = levelIn.getBlockEntity(pos);
-			if (entity != null) {
-				if (entity instanceof Container) {
-					Containers.dropContents(levelIn, pos, (Container) entity);
-					levelIn.updateNeighbourForOutputSignal(pos, this);
-				} else if (entity instanceof BlockContainer blockContainer) {
-					for (Container c : blockContainer.getContainers())
-						Containers.dropContents(levelIn, pos, c);
-					levelIn.updateNeighbourForOutputSignal(pos, this);
-				}
-				levelIn.removeBlockEntity(pos);
-			}
-		}
+				.filter(e -> e != InteractionResult.PASS)
+				.findFirst().orElse(InteractionResult.PASS);
 	}
 
 	@Override
@@ -150,9 +129,9 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final void neighborChanged(BlockState state, Level level, BlockPos pos, Block nei_block, BlockPos nei_pos, boolean moving) {
-		impl.forEach(NeighborUpdateBlockMethod.class, e -> e.neighborChanged(this, state, level, pos, nei_block, nei_pos, moving));
-		super.neighborChanged(state, level, pos, nei_block, nei_pos, moving);
+	public final void neighborChanged(BlockState state, Level level, BlockPos pos, Block nei_block, @Nullable Orientation orientation, boolean moving) {
+		impl.forEach(NeighborUpdateBlockMethod.class, e -> e.neighborChanged(this, state, level, pos, nei_block, orientation, moving));
+		super.neighborChanged(state, level, pos, nei_block, orientation, moving);
 	}
 
 	@Override
@@ -172,8 +151,8 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-		impl.one(EntityInsideBlockMethod.class).ifPresent(e -> e.entityInside(state, level, pos, entity));
+	public final void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+		impl.one(EntityInsideBlockMethod.class).ifPresent(e -> e.entityInside(state, level, pos, entity, effectApplier, isPrecise));
 	}
 
 	@Override
@@ -202,16 +181,16 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, float height) {
+	public final void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, double height) {
 		if (impl.reduce(FallOnBlockMethod.class, true, (a, e) -> a & e.fallOn(level, state, pos, entity, height))) {
 			super.fallOn(level, state, pos, entity, height);
 		}
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-		return impl.one(GetBlockItemBlockMethod.class).map(e -> e.getCloneItemStack(level, pos, state))
-				.orElse(super.getCloneItemStack(level, pos, state));
+	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+		return impl.one(GetBlockItemBlockMethod.class).map(e -> e.getCloneItemStack(level, pos, state, includeData))
+				.orElse(super.getCloneItemStack(level, pos, state, includeData));
 	}
 
 	@Override
@@ -237,13 +216,9 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final BlockState updateShape(BlockState selfState, Direction from, BlockState sourceState, LevelAccessor level, BlockPos selfPos, BlockPos sourcePos) {
-		return impl.reduce(ShapeUpdateBlockMethod.class, selfState, (currentState, e) -> e.updateShape(this, currentState, selfState, from, sourceState, level, selfPos, sourcePos));
-	}
-
-	@Override
-	public final void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> list, TooltipFlag flag) {
-		impl.forEach(ToolTipBlockMethod.class, e -> e.appendHoverText(stack, ctx, list, flag));
+	protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+		return impl.reduce(ShapeUpdateBlockMethod.class, state, (currentState, e) ->
+				e.updateShape(this, currentState, state, directionToNeighbour, neighbourState, level, pos, neighbourPos, ticks, random));
 	}
 
 	@Override
@@ -267,8 +242,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 		if (!stack.canPerformAction(ability)) {
 			return null;
 		}
-		return impl.<ToolModifyBlockMethod, @Nullable BlockState>reduce(ToolModifyBlockMethod.class,
-				super.getToolModifiedState(state, context, ability, simulate),
+		return impl.reduce(ToolModifyBlockMethod.class, super.getToolModifiedState(state, context, ability, simulate),
 				(current, impl) -> impl.getToolModifiedState(this, current, state, context, ability, simulate));
 	}
 

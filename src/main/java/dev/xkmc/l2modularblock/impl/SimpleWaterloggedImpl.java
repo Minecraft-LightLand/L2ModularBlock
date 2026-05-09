@@ -7,8 +7,11 @@ import dev.xkmc.l2modularblock.mult.ShapeUpdateBlockMethod;
 import dev.xkmc.l2modularblock.type.WaterloggedMethodMarker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -40,9 +43,9 @@ public record SimpleWaterloggedImpl() implements
 	}
 
 	@Override
-	public BlockState updateShape(Block self, BlockState selfCurrent, BlockState selfOld, Direction from, BlockState sourceState, LevelAccessor level, BlockPos selfPos, BlockPos sourcePos) {
+	public BlockState updateShape(Block self, BlockState selfCurrent, BlockState selfOld, Direction from, BlockState sourceState, LevelReader level, BlockPos selfPos, BlockPos sourcePos, ScheduledTickAccess ticks, RandomSource random) {
 		if (selfOld.getValue(BlockStateProperties.WATERLOGGED)) {
-			level.scheduleTick(selfPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+			ticks.scheduleTick(selfPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
 		return selfCurrent;
 	}

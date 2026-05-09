@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.redstone.Orientation;
+import org.jetbrains.annotations.Nullable;
 
 public class TriggerBlockMethodImpl implements NeighborUpdateBlockMethod, CreateBlockStateBlockMethod, DefaultStateBlockMethod {
 
@@ -19,7 +21,7 @@ public class TriggerBlockMethodImpl implements NeighborUpdateBlockMethod, Create
 	}
 
 	@Override
-	public void neighborChanged(Block self, BlockState state, Level world, BlockPos pos, Block nei_block, BlockPos nei_pos, boolean moving) {
+	public void neighborChanged(Block self, BlockState state, Level world, BlockPos pos, Block nei_block, @Nullable Orientation orientation, boolean moving) {
 		boolean flag = world.hasNeighborSignal(pos) || world.hasNeighborSignal(pos.above());
 		boolean flag1 = state.getValue(BlockStateProperties.TRIGGERED);
 		if (flag && !flag1) {
