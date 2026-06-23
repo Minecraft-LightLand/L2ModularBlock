@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
@@ -79,7 +80,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	public final int getLightEmission(BlockState bs, BlockGetter w, BlockPos pos) {
 		return impl.one(LightBlockMethod.class).map(e -> e.getLightValue(bs, w, pos))
-				.orElse(super.getLightEmission(bs, w, pos));
+				.orElseGet(() -> super.getLightEmission(bs, w, pos));
 	}
 
 	@Override
@@ -112,8 +113,8 @@ public class DelegateBlockImpl extends DelegateBlock {
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		return impl.execute(UseItemOnBlockMethod.class)
 				.map(e -> e.useItemOn(stack, state, level, pos, player, hand, hit))
-				.filter(e -> e != InteractionResult.PASS)
-				.findFirst().orElse(InteractionResult.PASS);
+				.filter(e -> e != InteractionResult.PASS && e != InteractionResult.TRY_WITH_EMPTY_HAND)
+				.findFirst().orElse(InteractionResult.TRY_WITH_EMPTY_HAND);
 	}
 
 	@Override
@@ -190,13 +191,13 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		return impl.one(GetBlockItemBlockMethod.class).map(e -> e.getCloneItemStack(level, pos, state, includeData))
-				.orElse(super.getCloneItemStack(level, pos, state, includeData));
+				.orElseGet(() -> super.getCloneItemStack(level, pos, state, includeData));
 	}
 
 	@Override
 	public final List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
 		return impl.one(SpecialDropBlockMethod.class).map(e -> e.getDrops(state, builder))
-				.orElse(super.getDrops(state, builder));
+				.orElseGet(() -> super.getDrops(state, builder));
 	}
 
 	@Override
@@ -244,6 +245,13 @@ public class DelegateBlockImpl extends DelegateBlock {
 		}
 		return impl.reduce(ToolModifyBlockMethod.class, super.getToolModifiedState(state, context, ability, simulate),
 				(current, impl) -> impl.getToolModifiedState(this, current, state, context, ability, simulate));
+	}
+
+	@Override
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
+		return impl.one(PathFindBlockMethod.class)
+				.map(e -> e.isPathfindable(state, type))
+				.orElseGet(() -> super.isPathfindable(state, type));
 	}
 
 	public final BlockImplementor getImpl() {
