@@ -20,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -33,13 +34,16 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ToolAction;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -92,7 +96,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	public final BlockState getStateForPlacement(BlockPlaceContext context) {
 		return impl.reduce(PlacementBlockMethod.class, defaultBlockState(),
-				(state, impl) -> impl.getStateForPlacement(state, context));
+				(state, impl) -> state == null ? null : impl.getStateForPlacement(state, context));
 	}
 
 	@Override
@@ -108,9 +112,20 @@ public class DelegateBlockImpl extends DelegateBlock {
 	}
 
 	@Override
-	public final InteractionResult use(BlockState bs, Level w, BlockPos pos, Player pl, InteractionHand h, BlockHitResult r) {
+	public final InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+		ItemStack stack = player.getItemInHand(hand);
+		InteractionResult result = impl.execute(UseItemOnBlockMethod.class)
+				.map(e -> e.useItemOn(stack, state, level, pos, player, hand, hit))
+				.filter(e -> e != InteractionResult.PASS)
+				.findFirst().orElse(InteractionResult.PASS);
+		if (result != InteractionResult.PASS) return result;
+		result = impl.execute(UseWithoutItemBlockMethod.class)
+				.map(e -> e.useWithoutItem(state, level, pos, player, hit))
+				.filter(e -> e != InteractionResult.PASS)
+				.findFirst().orElse(InteractionResult.PASS);
+		if (result != InteractionResult.PASS) return result;
 		return impl.execute(OnClickBlockMethod.class)
-				.map(e -> e.onClick(bs, w, pos, pl, h, r))
+				.map(e -> e.onClick(state, level, pos, player, hand, hit))
 				.filter(e -> e != InteractionResult.PASS)
 				.findFirst().orElse(InteractionResult.PASS);
 	}
@@ -175,6 +190,7 @@ public class DelegateBlockImpl extends DelegateBlock {
 
 	@Override
 	public final VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+		if (!hasCollision) return Shapes.empty();
 		return impl.one(ShapeBlockMethod.class).map(e -> e.getCollisionShape(state, level, pos, ctx))
 				.orElseGet(() -> super.getCollisionShape(state, level, pos, ctx));
 	}
@@ -249,6 +265,41 @@ public class DelegateBlockImpl extends DelegateBlock {
 	@Override
 	public final boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
 		return impl.testAnd(SurviveBlockMethod.class, e->e.canSurvive(state,level,pos));
+	}
+
+	@Override
+	public final void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
+		impl.forEach(StepOnBlockMethod.class, e -> e.stepOn(level, pos, state, entity));
+	}
+
+	@Override
+	public final boolean isPathfindable(BlockState state, BlockGetter level, BlockPos pos, PathComputationType type) {
+		return impl.first(PathFindBlockMethod.class,
+				m -> m.isPathfindable(state, type),
+				() -> super.isPathfindable(state, level, pos, type));
+	}
+
+	@Override
+	public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity be, ItemStack stack) {
+		if (!impl.testOr(PlayerDestoryBlockMethod.class, m -> m.playerDestroy(level, player, pos, state, be, stack)))
+			super.playerDestroy(level, player, pos, state, be, stack);
+	}
+
+	@Override
+	public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+		impl.forEach(PlayerDestoryBlockMethod.class, m -> m.playerWillDestroy(level, pos, state, player));
+		super.playerWillDestroy(level, pos, state, player);
+	}
+
+	@Override
+	public @Nullable BlockState getToolModifiedState(BlockState state, UseOnContext context, ToolAction toolAction, boolean simulate) {
+		ItemStack stack = context.getItemInHand();
+		if (!stack.canPerformAction(toolAction)) {
+			return null;
+		}
+		return impl.<ToolModifyBlockMethod, BlockState>reduce(ToolModifyBlockMethod.class,
+				super.getToolModifiedState(state, context, toolAction, simulate),
+				(current, impl) -> impl.getToolModifiedState(this, current, state, context, toolAction, simulate));
 	}
 
 	public final BlockImplementor getImpl() {

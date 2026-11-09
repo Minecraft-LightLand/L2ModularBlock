@@ -14,7 +14,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 version = "${ll_version}"
-group = 'dev.kxmc.l2modularblock' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = 'dev.xkmc.l2modularblock' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'l2modularblock'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)

@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class BlockImplementor {
@@ -108,6 +110,17 @@ public class BlockImplementor {
 			}
 		}
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends MultipleBlockMethod, E> E first(Class<T> cls, Function<T, E> cons, Supplier<E> fallback) {
+		for (MultipleBlockMethod method : list) {
+			if (cls.isInstance(method)) {
+				var ans = cons.apply((T) method);
+				if (ans != null) return ans;
+			}
+		}
+		return fallback.get();
 	}
 
 	@SuppressWarnings("unchecked")
