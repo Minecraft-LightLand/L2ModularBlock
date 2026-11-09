@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -270,6 +271,26 @@ public class DelegateBlockImpl extends DelegateBlock {
 		return impl.<ToolModifyBlockMethod, @Nullable BlockState>reduce(ToolModifyBlockMethod.class,
 				super.getToolModifiedState(state, context, ability, simulate),
 				(current, impl) -> impl.getToolModifiedState(this, current, state, context, ability, simulate));
+	}
+
+	@Override
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
+		return impl.first(PathFindBlockMethod.class,
+				m -> m.isPathfindable(state, type),
+				() -> super.isPathfindable(state, type));
+	}
+
+	@Override
+	public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity be, ItemStack stack) {
+		if (!impl.testOr(PlayerDestoryBlockMethod.class, m -> m.playerDestroy(level, player, pos, state, be, stack)))
+			super.playerDestroy(level, player, pos, state, be, stack);
+	}
+
+	@Override
+	public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+		return impl.first(PlayerDestoryBlockMethod.class,
+				m -> m.playerWillDestroy(pLevel, pPos, pState, pPlayer),
+				() -> super.playerWillDestroy(pLevel, pPos, pState, pPlayer));
 	}
 
 	public final BlockImplementor getImpl() {
